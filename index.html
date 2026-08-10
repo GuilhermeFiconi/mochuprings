@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audi Brasil - Arquitetura de Conversação Blip</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --audi-black: #000000;
+      --audi-red: #BB0A30;
+      --audi-grey: #F2F2F2;
+      --blip-blue: #0091FF;
+      --dark-bg: #0B111E;
+      --bg-whatsapp: #efeae2;
+      --balao-bot: #ffffff;
+      --balao-user: #d9fdd3;
+      --txt-main: #111b21;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Lexend', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, var(--dark-bg) 0%, #040711 100%);
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    /* Header com Branding Audi + Blip */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      max-width: 1200px;
+      padding: 16px 30px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 25px;
+    }
+
+    .brand-audi {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .audi-rings svg {
+      height: 26px;
+      fill: none;
+      stroke: #ffffff;
+      stroke-width: 2.2;
+    }
+
+    .brand-audi span {
+      font-weight: 700;
+      letter-spacing: 2px;
+      font-size: 1rem;
+      text-transform: uppercase;
+    }
+
+    .logo-blip-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .blip-balloon {
+      width: 28px;
+      height: 28px;
+      background: var(--blip-blue);
+      border-radius: 50% 50% 50% 10%;
+      transform: rotate(-45deg);
+      display: inline-block;
+    }
+
+    .blip-text {
+      font-weight: 800;
+      font-size: 1.7rem;
+      color: #ffffff;
+      letter-spacing: -1px;
+      line-height: 1;
+    }
+
+    /* Layout Principal */
+    main {
+      display: flex;
+      width: 100%;
+      max-width: 1200px;
+      gap: 30px;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    /* Painel Lateral com Scrollbar Customizada */
+    .control-panel {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 22px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      max-height: 720px;
+      overflow-y: auto;
+    }
+
+    .control-panel::-webkit-scrollbar { width: 6px; }
+    .control-panel::-webkit-scrollbar-track { background: transparent; }
+    .control-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+
+    .control-panel h2 {
+      font-size: 1.15rem;
+      margin-bottom: 8px;
+      color: var(--blip-blue);
+      font-weight: 600;
+    }
+
+    .control-panel p.subtitle {
+      font-size: 0.82rem;
+      color: #94a3b8;
+      margin-bottom: 20px;
+      line-height: 1.4;
+    }
+
+    .section-category {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--audi-red);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 18px 0 8px 0;
+    }
+
+    .journey-btn {
+      width: 100%;
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      color: #fff;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-bottom: 8px;
+    }
+
+    .journey-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .journey-btn.active {
+      border-color: var(--blip-blue);
+      background: rgba(0, 145, 255, 0.15);
+    }
+
+    .journey-btn h3 {
+      font-size: 0.85rem;
+      margin-bottom: 3px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .journey-btn p {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      line-height: 1.3;
+    }
+
+    /* Simulador Smartphone */
+    .phone-container {
+      width: 380px;
+      height: 710px;
+      background: #000000;
+      border-radius: 42px;
+      padding: 10px;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8);
+      border: 3px solid #334155;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      background: var(--bg-whatsapp);
+      border-radius: 32px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .wa-header {
+      background: #000000;
+      padding: 32px 15px 12px 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: white;
+      border-bottom: 2px solid var(--audi-red);
+    }
+
+    .wa-avatar {
+      width: 36px;
+      height: 36px;
+      background: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: #000;
+      font-size: 0.85rem;
+    }
+
+    .wa-info h4 {
+      font-size: 0.88rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .wa-info p {
+      font-size: 0.68rem;
+      color: #a1a1aa;
+    }
+
+    .wa-badge {
+      background: #25D366;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .wa-chat-body {
+      flex: 1;
+      padding: 14px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      scroll-behavior: smooth;
+    }
+
+    .msg {
+      max-width: 85%;
+      padding: 8px 11px;
+      font-size: 0.81rem;
+      position: relative;
+      line-height: 1.4;
+      color: var(--txt-main);
+      box-shadow: 0 1px 1px rgba(0,0,0,0.08);
+    }
+
+    .msg-bot {
+      background: var(--balao-bot);
+      align-self: flex-start;
+      border-radius: 0px 10px 10px 10px;
+    }
+
+    .msg-user {
+      background: var(--balao-user);
+      align-self: flex-end;
+      border-radius: 10px 0px 10px 10px;
+    }
+
+    .msg-time {
+      font-size: 0.62rem;
+      color: #8696a0;
+      text-align: right;
+      margin-top: 3px;
+      display: block;
+    }
+
+    /* Meta Components */
+    .meta-list-container {
+      margin-top: 6px;
+      border-top: 1px solid #e9ecef;
+      padding-top: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .meta-list-header {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #667781;
+      padding: 2px 0;
+      text-transform: uppercase;
+    }
+
+    .meta-menu-option {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      color: #000;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.2s;
+    }
+
+    .meta-menu-option:hover {
+      background: #e2e8f0;
+    }
+
+    .meta-menu-option::after {
+      content: "➔";
+      font-size: 0.7rem;
+      color: var(--audi-red);
+    }
+
+    .meta-buttons-inline {
+      display: flex;
+      gap: 5px;
+      margin-top: 6px;
+      border-top: 1px solid #e9ecef;
+      padding-top: 6px;
+      flex-wrap: wrap;
+    }
+
+    .meta-btn-quick {
+      flex: 1;
+      min-width: 75px;
+      background: #ffffff;
+      color: #000;
+      border: 1px solid #cbd5e1;
+      padding: 7px;
+      border-radius: 18px;
+      font-weight: 500;
+      font-size: 0.75rem;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .meta-btn-quick:hover {
+      background: #f1f5f9;
+      border-color: #000;
+    }
+
+    .wa-footer {
+      background: #f0f2f5;
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .wa-input-mock {
+      flex: 1;
+      background: white;
+      padding: 8px 12px;
+      border-radius: 18px;
+      font-size: 0.78rem;
+      color: #667781;
+    }
+
+    .wa-mic-mock {
+      width: 32px;
+      height: 32px;
+      background: #000;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand-audi">
+      <div class="audi-rings">
+        <svg viewBox="0 0 140 40">
+          <circle cx="20" cy="20" r="15"/>
+          <circle cx="48" cy="20" r="15"/>
+          <circle cx="76" cy="20" r="15"/>
+          <circle cx="104" cy="20" r="15"/>
+        </svg>
+      </div>
+      <span>Audi</span>
+    </div>
+    <div class="logo-blip-container">
+      <div class="blip-balloon"></div>
+      <div class="blip-text">blip</div>
+    </div>
+  </header>
+
+  <main>
+    <div class="control-panel">
+      <h2>Mapeamento da Arquitetura</h2>
+      <p class="subtitle">Selecione o fluxo desejado para simular as jornadas orquestradas no WhatsApp da Audi.</p>
+
+      <div class="section-category">Número Pré-Venda / Venda</div>
+
+      <button class="journey-btn active" onclick="switchJourney('pre_qualificacao')">
+        <h3>🚘 1. Qualificação de Leads</h3>
+        <p>Atribuição de origem (Midia/Drive-in) + Segmentação de perfil de interesse.</p>
+      </button>
+
+      <button class="journey-btn" onclick="switchJourney('pre_aquecimento')">
+        <h3>🔥 2. Aquecimento de Leads & Oferta</h3>
+        <p>Apresentação de produtos, Mídia consultiva e Condições financeiras.</p>
+      </button>
+
+      <button class="journey-btn" onclick="switchJourney('pre_pos_interacao')">
+        <h3>🔄 3. Pós-Interação & Reativação</h3>
+        <p>Reativação de leads frios, ofertas exclusivas e agendamento presencial.</p>
+      </button>
+
+      <div class="section-category">Número Pós-Venda</div>
+
+      <button class="journey-btn" onclick="switchJourney('pos_ativo')">
+        <h3>📢 4. Contato Ativo (Serviços/Eventos)</h3>
+        <p>Lembrete de revisão, garantia, acessórios e convite para eventos Audi.</p>
+      </button>
+
+      <button class="journey-btn" onclick="switchJourney('pos_organico')">
+        <h3>🛠️ 5. Contato Orgânico (Proprietário)</h3>
+        <p>Agendamento de oficina, serviços e onboarding do novo proprietário.</p>
+      </button>
+
+      <div class="section-category">Camada Transversal Orquestrada</div>
+
+      <button class="journey-btn" onclick="switchJourney('suporte_faq_csat')">
+        <h3>💬 6. Transbordo, FAQ & CSAT</h3>
+        <p>Suporte cognitivo via IA, transbordo para consultor e pesquisa de satisfação.</p>
+      </button>
+
+      <button class="journey-btn" style="text-align: center; margin-top: 15px;" onclick="resetChat()">
+        🔄 Reiniciar Jornada
+      </button>
+    </div>
+
+    <div class="phone-container">
+      <div class="phone-screen">
+        <div class="wa-header">
+          <div class="wa-avatar">A</div>
+          <div class="wa-info">
+            <h4>Audi Brasil <span class="wa-badge"></span></h4>
+            <p>Conta oficial de atendimento</p>
+          </div>
+        </div>
+
+        <div class="wa-chat-body" id="chatBody"></div>
+
+        <div class="wa-footer">
+          <div class="wa-input-mock">Digite uma mensagem</div>
+          <div class="wa-mic-mock">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const journeys = {
+      pre_qualificacao: [
+        {
+          type: 'bot',
+          text: 'Olá! Bem-vindo à <b>Audi Brasil</b>. 🔴<br><br>Identificamos seu interesse através de nossas campanhas de <b>Performance & Experiência</b>.<br><br>Para direcionarmos o melhor especialista, qual categoria mais desperta sua paixão?',
+          listMenu: {
+            header: 'Categorias Audi',
+            options: [
+              { text: '⚡ Linha e-tron (100% Elétricos)', next: 1 },
+              { text: '🏎️ Linha RS (Alta Performance)', next: 1 },
+              { text: '🚙 Linha Q (SUVs de Luxo)', next: 1 }
+            ]
+          }
+        },
+        {
+          type: 'bot',
+          text: 'Excelente! Registramos seu perfil em nosso orquestrador de Pré-Venda.<br><br>Em qual região você pretende realizar o atendimento?',
+          listMenu: {
+            header: 'Concessionárias',
+            options: [
+              { text: 'São Paulo - Jardins', next: 2 },
+              { text: 'Curitiba - Batel', next: 2 }
+            ]
+          }
+        },
+        {
+          type: 'bot',
+          text: 'Perfeito! Seus dados foram encaminhados para a equipe comercial regional. Deseja visualizar as condições técnicas do modelo agora?',
+          buttons: [
+            { text: '📄 Ver Ficha Técnica', next: 3 },
+            { text: '👤 Falar com Consultor', next: 3 }
+          ]
+        },
+        {
+          type: 'bot',
+          text: 'Qualificação concluída! Um consultor especializado dará sequência ao seu atendimento. 🏁'
+        }
+      ],
+      pre_aquecimento: [
+        {
+          type: 'bot',
+          text: 'Separamos um conteúdo exclusivo sobre o <b>Audi Q8 e-tron</b> para você. ⚡<br><br>Como prefere explorar a apresentação do produto?',
+          buttons: [
+            { text: '🎬 Mídia Consultiva', next: 1 },
+            { text: '💰 Condições/Ofertas', next: 2 }
+          ]
+        },
+        {
+          type: 'bot',
+          text: '🎥 <b>Mídia Consultiva Audi:</b><br><br>• Autonomia: até 491 km<br>• Potência: 408 cv<br>• Recarga rápida em 31 minutos em estações DC.<br><br>Deseja simular o financiamento e proposta de venda?',
+          buttons: [
+            { text: 'Simular Financiamento', next: 2 }
+          ]
+        },
+        {
+          type: 'bot',
+          text: '📊 <b>Simulação de Oferta - Audi Financial Services:</b><br><br>• Entrada: 50%<br>• Saldo: 24x com taxa 0%<br>• Bônus na avaliação do seu usado.<br><br>Deseja agendar uma visita presencial para validar esta condição?',
+          buttons: [
+            { text: '🗓️ Agendar Visita', next: 3 }
+          ]
+        },
+        {
+          type: 'bot',
+          text: 'Solicitação reservada! Enviamos um alerta para a concessionária preparar o veículo para sua demonstração. 👍'
+        }
+      ],
+      pre_pos_interacao: [
+        {
+          type: 'bot',
+          text: 'Olá! Notamos que você consultou o <b>Audi A4 Sedan</b> recentemente e gostaríamos de retomar seu atendimento.<br><br>Temos uma oportunidade especial de bônus exclusiva para esta semana. Deseja reativar sua consulta?',
+          buttons: [
+            { text: '🎯 Ver Oferta Especial', next: 1 },
+            { text: '❌ Não tenho interesse', next: 2 }
+          ]
+        },
+        {
+          type: 'bot',
+          text: 'Oportunidade liberada: <b>Audi A4 Sedan</b> com IPVA 2026 Grátis + Primeira Revisão inclusa.<br><br>Podemos agendar sua apresentação presencial na concessionária?',
+          listMenu: {
+            header: 'Turnos para Agendamento',
+            options: [
+              { text: 'Manhã (09h - 12h)', next: 3 },
+              { text: 'Tarde (14h - 18h)', next: 3 }
+            ]
+          }
+        },
+        {
+          type: 'bot',
+          text: 'Agradecemos sua resposta. Caso deseje retoma no futuro, estaremos à disposição!'
+        },
+        {
+          type: 'bot',
+          text: 'Agendamento de reativação concluído! O consultor da unidade aguarda sua visita. 🔴'
+        }
+      ],
+      pos_ativo: [
+        {
+          type: 'bot',
+          text: 'Olá, Guilherme! Notificação oficial do <b>Pós-Venda Audi</b>. 🔧<br><br>Identificamos que a garantia do seu <b>Audi Q5</b> precisa de atenção preventiva. Escolha como podemos te ajudar:',
+          listMenu: {
+            header: 'Serviços Ativos',
+            options: [
+              { text: '🛠️ Aviso de Revisão Preventiva', next: 1 },
+              { text: '🛡️ Vencimento de Garantia', next: 1 },
+              { text: '💎 Acessórios & Eventos Audi', next: 2 }
+            ]
+          }
+        },
+        {
+          type: 'bot',
+          text: 'Perfeito. Para o agendamento de serviços de oficina, escolha a concessionária preferida:',
+          listMenu: {
+            header: 'Oficinas Autorizadas',
+            options: [
+              { text: 'Audi Center Alphaville', next: 3 },
+              { text: 'Audi Center Mogi', next: 3 }
+            ]
+          }
+        },
+        {
+          type: 'bot',
+          text: '🎉 <b>Convite VIP - Evento Audi driving experience:</b><br><br>Você foi convidado para testar nossos modelos RS em pista fechada!<br><br>Deseja confirmar sua presenã?',
+          buttons: [
+            { text: '✅ Confirmar Presença', next: 3 },
+            { text: 'ℹ️ Mais Detalhes', next: 3 }
+          ]
+        },
+        {
+          type: 'bot',
+          text: 'Solicitação registrada no ecossistema Pós-Venda Audi. Enviaremos o voucher de confirmação por aqui. 🏁'
+        }
+      ],
+      pos_organico: [
+        {
+          type: 'bot',
+          text: 'Bem-vindo ao canal de **Pós-Venda Orgânico Audi**. ⚙️<br><br>Como podemos auxiliar no cuidado do seu Audi hoje?',
+          listMenu: {
+            header: 'Menu de Atendimento',
+            options: [
+              { text: '🔧 Agendamento de Serviços', next: 1 },
+              { text: '🚗 Jornada do Novo Proprietário', next: 2 },
+              { text: '🛍️ Aquisição de Acessórios', next: 1 }
+            ]
+          }
+        },
+        {
+          type: 'bot',
+          text: 'Entendido. Para dar andamento ao serviço ou pedido de acessórios, por favor confirme a placa do seu veículo ou número do chassi:',
+          actionSim: () => {
+            setTimeout(() => {
+              sendUserMessage("ABC-1234");
+              setTimeout(() => {
+                sendBotMessage("Veículo localizado: <b>Audi Q3 Black Edition (2024)</b>.<br><br>Redirecionando para a fila de agendamento do consultor de serviço...", null, null);
+              }, 1200);
+            }, 1500);
+          }
+        },
+        {
+          type: 'bot',
+          text: 'Parabéns pelo seu novo Audi! 🏆<br><br>Preparamos um guia interativo cobrindo conectividade do sistema MMI, configurações de carregamento e benefícios da garantia.'
+        }
+      ],
+      suporte_faq_csat: [
+        {
+          type: 'bot',
+          text: 'Olá! Sou o assistente de suporte inteligente da **Audi Brasil**. 🤖<br><br>Posso tirar dúvidas sobre seu veículo ou conectar você com um atendente humano.',
+          actionSim: () => {
+            setTimeout(() => {
+              sendUserMessage("Como funciona a garantia da bateria dos modelos e-tron?");
+              setTimeout(() => {
+                sendBotMessage("<b>Processando resposta na base técnica...</b> ⚡", null, null, () => {
+                  setTimeout(() => {
+                    sendBotMessage("A bateria de alta voltagem dos modelos <b>Audi e-tron</b> possui garantia de fábrica de <b>8 anos ou 160.000 km</b>, o que ocorrer primeiro.<br><br>Sua dúvida foi resolvida ou deseja falar com um agente humano?", null, [
+                      { text: '✅ Dúvida Resolvida', next: 1 },
+                      { text: '👨‍💼 Falar com Agente', next: 2 }
+                    ]);
+                  }, 1500);
+                });
+              }, 1200);
+            }, 1500);
+          }
+        },
+        {
+          type: 'bot',
+          text: 'Ficamos felizes em ajudar! Por favor, avalie a qualidade deste atendimento:',
+          buttons: [
+            { text: '⭐ Excelente', next: 3 },
+            { text: '👍 Bom', next: 3 },
+            { text: '👎 Regular/Ruim', next: 3 }
+          ]
+        },
+        {
+          type: 'bot',
+          text: 'Transferindo seu atendimento para a fila de **Transbordo Humano**. Um consultor assumirá o chat em instantes. ⏳'
+        },
+        {
+          type: 'bot',
+          text: 'Obrigado por sua avaliação! Sua opinião ajuda a manter o padrão de excelência Audi. 🔴'
+        }
+      ]
+    };
+
+    let currentJourneyId = 'pre_qualificacao';
+    let currentStep = 0;
+
+    function switchJourney(key) {
+      currentJourneyId = key;
+      currentStep = 0;
+      document.querySelectorAll('.journey-btn').forEach(btn => btn.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+      resetChat();
+    }
+
+    function resetChat() {
+      document.getElementById('chatBody').innerHTML = '';
+      currentStep = 0;
+      renderStep();
+    }
+
+    function renderStep() {
+      const journey = journeys[currentJourneyId];
+      if (currentStep >= journey.length) return;
+
+      const stepData = journey[currentStep];
+      if (stepData.type === 'bot') {
+        sendBotMessage(stepData.text, stepData.listMenu, stepData.buttons, stepData.actionSim);
+      }
+    }
+
+    function sendBotMessage(htmlText, listMenu = null, buttons = null, callback = null) {
+      const chatBody = document.getElementById('chatBody');
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'msg msg-bot';
+      
+      let content = `<div>${htmlText}</div>`;
+      
+      if (listMenu) {
+        content += `<div class="meta-list-container">`;
+        content += `<div class="meta-list-header">${listMenu.header}</div>`;
+        listMenu.options.forEach((opt) => {
+          content += `<div class="meta-menu-option" onclick="handleMenuSelection('${opt.text}', ${opt.next})">${opt.text}</div>`;
+        });
+        content += `</div>`;
+      }
+
+      if (buttons && buttons.length > 0) {
+        content += `<div class="meta-buttons-inline">`;
+        buttons.forEach((btn) => {
+          content += `<button class="meta-btn-quick" onclick="handleMenuSelection('${btn.text}', ${btn.next})">${btn.text}</button>`;
+        });
+        content += `</div>`;
+      }
+
+      const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      content += `<span class="msg-time">${time}</span>`;
+      
+      msgDiv.innerHTML = content;
+      chatBody.appendChild(msgDiv);
+      chatBody.scrollTop = chatBody.scrollHeight;
+
+      if (callback) callback();
+    }
+
+    function sendUserMessage(text) {
+      const chatBody = document.getElementById('chatBody');
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'msg msg-user';
+      
+      const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      msgDiv.innerHTML = `<div>${text}</div><span class="msg-time">${time}</span>`;
+      
+      chatBody.appendChild(msgDiv);
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    function handleMenuSelection(text, nextStep) {
+      sendUserMessage(text);
+      currentStep = nextStep;
+      setTimeout(() => {
+        renderStep();
+      }, 800);
+    }
+
+    renderStep();
+  </script>
+</body>
+</html>
